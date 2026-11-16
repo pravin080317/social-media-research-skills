@@ -1,0 +1,38 @@
+publication:
+  timezone: Europe/London
+  lookback_hours: 36
+  max_candidates_per_topic: 10
+  max_articles_per_run: 2
+  output_mode: pull_request
+  auto_publish: false
+  target:
+    repository: pravin080317/staticgenerativeai-praveensite
+    base_branch: master
+    article_root: blog
+  social:
+    linkedin: draft_only
+    x: draft_only
+
+topics:
+  - id: testing
+    agent: testing-content-agent
+    tags: [testing, performance-testing, security-testing, agentic-testing]
+  - id: ai-agentic
+    agent: ai-agentic-content-agent
+    tags: [ai, agents, rag, evaluations, responsible-ai]
+  - id: cloud
+    agent: cloud-content-agent
+    tags: [cloud, kubernetes, platform-engineering, sre, finops]
+  - id: azure
+    agent: azure-content-agent
+    tags: [azure, microsoft-foundry, integration, data, identity]
+  - id: security-delivery
+    agent: security-delivery-content-agent
+    tags: [security, devsecops, cicd, deployment, supply-chain]
+
+editor:
+  agent: tech-content-editor
+  require_primary_source: true
+  require_claim_source_map: true
+  minimum_confidence: 0.8
+  human_approval_required: true
