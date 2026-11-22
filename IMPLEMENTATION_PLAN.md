@@ -24,6 +24,85 @@ Each successful run must provide:
 
 A run with no sufficiently strong story is a valid outcome. The pipeline must not manufacture content to meet a quota.
 
+## 3. Editorial disposition: choose the right output
+
+The route/review agent must classify each verified candidate into exactly one disposition:
+
+| Disposition | When to use it | Generated output | Approval result |
+|---|---|---|---|
+| Full article | The change needs explanation, architectural context, examples, risks or implementation guidance | Docusaurus Markdown article plus LinkedIn and X promotion drafts | Merge the Docusaurus PR to publish the article |
+| Social brief | The news is useful but does not justify a full article | Short LinkedIn draft, X draft, canonical link and optional licensed/approved image reference | Human copies/publishes the approved draft; it is not added as a Docusaurus article |
+| Hold | Evidence, timing or significance is uncertain | Review note with missing evidence and recheck date | No publication |
+| Reject | Duplicate, weak, unsafe, irrelevant or unsupported | Rejection reason retained in the run manifest | No publication |
+
+The system must not create a long article merely to fill the site. Conversely, a material story must not be reduced to a headline when readers need technical explanation.
+
+### Full-article package
+
+- article Markdown in the Docusaurus content path
+- LinkedIn promotion draft
+- X promotion draft
+- source and claim map
+- suggested image brief or reusable source image with licensing/provenance recorded
+- editorial review record
+
+### Social-brief package
+
+- clear headline/hook
+- two or three lines explaining why the update matters
+- canonical source link
+- LinkedIn-specific draft
+- X-specific draft
+- image reference only when usage rights and provenance are recorded
+- evidence and editorial review record
+
+Social-only files must live in a path excluded from the Docusaurus build and must never appear as website articles.
+
+## 4. Approval and publishing model
+
+GitHub is the single system of record for drafts and approvals. SharePoint is not required for the production workflow.
+
+### Article approval
+
+1. The runner opens or updates a content PR in `pravin080317/staticgenerativeai-praveensite`.
+2. The PR contains the article, evidence, review result and social drafts.
+3. CI validates content, links, secrets and the production Docusaurus build.
+4. The owner reviews the rendered preview and evidence.
+5. Requested changes return the draft to the pipeline or are committed to the PR.
+6. Only a human merge counts as approval.
+7. Merge to `master` triggers the existing Azure Static Web Apps deployment.
+8. Deployment status and final article URL are added to the run record.
+
+### Social approval
+
+Social drafts remain review artifacts. Approval is recorded explicitly in the PR using the agreed review status or label. Initial production operation is manual publishing: the owner copies the approved LinkedIn/X content after the article URL is live.
+
+No LinkedIn or X publishing token is required for the initial implementation. Automated social publishing is a separate controlled capability and must not be enabled without:
+
+- explicit owner authorization
+- supported official platform API access
+- a protected GitHub environment with required human approval
+- separate least-privilege secrets
+- dry-run preview of the exact text, link and media
+- idempotency preventing duplicate posts
+- retained platform post ID and audit record
+
+Approval of an article does not silently approve its social posts. Each output has an explicit status: DRAFT, CHANGES_REQUESTED, APPROVED, PUBLISHED or CANCELLED.
+
+### Docusaurus delivery path
+
+```text
+Scheduled collection
+  -> candidate routing and verification
+  -> reviewer disposition
+  -> generated Markdown and social drafts
+  -> Docusaurus pull request
+  -> CI build and Azure preview
+  -> human review and merge
+  -> Azure Static Web Apps production deployment
+  -> optional manual social publishing
+```
+
 ## 3. Production boundaries
 
 - Public information only.
@@ -35,9 +114,9 @@ A run with no sufficiently strong story is a valid outcome. The pipeline must no
 - Existing Docusaurus content must never be overwritten.
 - Generated branches and files must be deterministic and collision-safe.
 
-## 4. Architecture
+## 5. Architecture
 
-### 4.1 Scheduler and runner
+### 5.1 Scheduler and runner
 
 A GitHub Actions workflow in this repository will run daily and support manual dispatch.
 
@@ -59,7 +138,7 @@ The runner will be an executable application, not a collection of prompts. It wi
 
 Use Node.js with a pinned active LTS version and a committed lockfile. All commands must be non-interactive and return meaningful exit codes.
 
-### 4.2 Collection layer
+### 5.2 Collection layer
 
 Use ScrapeCreators API adapters for:
 
@@ -94,7 +173,7 @@ Every collected item must be normalized into a common candidate schema:
 
 Adapters must implement timeouts, bounded retries with backoff, rate-limit handling and schema validation.
 
-### 4.3 Topic routing
+### 5.3 Topic routing
 
 Route candidates to one primary owner:
 
@@ -110,7 +189,7 @@ Cross-topic items may have a secondary reviewer, but exactly one agent owns the 
 
 Routing must use explicit rules first and model classification second. Record the routing reason.
 
-### 4.4 Deduplication and state
+### 5.4 Deduplication and state
 
 Prevent duplicate coverage using:
 
@@ -126,7 +205,7 @@ State must record candidate status: discovered, duplicate, rejected, held, selec
 
 Retention must be sufficient to prevent recycling old stories. State updates must be atomic and recoverable.
 
-### 4.5 Evidence and fact checking
+### 5.5 Evidence and fact checking
 
 For every material claim, retain:
 
@@ -146,7 +225,7 @@ Rules:
 - Conflicting sources result in HOLD unless the article explicitly and accurately explains the conflict.
 - Unsupported claims must be removed or marked unresolved; they cannot reach APPROVE.
 
-### 4.6 Editorial gate
+### 5.6 Editorial gate
 
 The `tech-content-editor` is the final route, review and fact-check gate.
 
@@ -157,13 +236,13 @@ It returns:
 - HOLD
 - REJECT
 
-Only APPROVE may create a content PR. REVISE returns to the owning agent for a bounded number of corrections. HOLD and REJECT remain in the run report.
+Only APPROVE may create or update a content PR. The editor must also assign FULL_ARTICLE or SOCIAL_BRIEF. REVISE returns to the owning agent for a bounded number of corrections. HOLD and REJECT remain in the run report.
 
 Editorial checks include accuracy, usefulness, originality, structure, accessibility, title quality, hook quality, tone, source quality and platform-specific formatting.
 
 Humour or curiosity may be used lightly, but must never weaken accuracy or trivialize security incidents.
 
-### 4.7 Content rendering
+### 5.7 Content rendering
 
 Article output must match the Docusaurus site's agreed schema and topic navigation.
 
@@ -191,7 +270,7 @@ Required article structure:
 
 LinkedIn and X drafts must be platform-specific rather than shortened copies of the article. Both must point to the final article URL placeholder and remain draft artifacts.
 
-### 4.8 Cross-repository pull request
+### 5.8 Cross-repository pull request
 
 Use a GitHub App or fine-grained token with minimum required permissions:
 
@@ -210,7 +289,7 @@ For each approved run:
 
 Rerunning the same run ID must update the existing branch/PR rather than create duplicates.
 
-## 5. Repository structure
+## 6. Repository structure
 
 ```text
 config/
@@ -247,7 +326,7 @@ artifacts/
 
 Runtime artifacts must not be committed to the main branch.
 
-## 6. Configuration and secrets
+## 7. Configuration and secrets
 
 Required secrets:
 
@@ -270,7 +349,7 @@ Configuration must define:
 
 Startup must fail fast when configuration is invalid or required secrets are absent.
 
-## 7. Reliability and operational controls
+## 8. Reliability and operational controls
 
 - Prevent overlapping scheduled runs using GitHub Actions concurrency.
 - Set job and request timeouts.
@@ -285,7 +364,7 @@ Startup must fail fast when configuration is invalid or required secrets are abs
 - Apply dependency and secret scanning.
 - Define monthly dependency maintenance.
 
-## 8. Observability
+## 9. Observability
 
 Each run must report:
 
@@ -302,7 +381,7 @@ Each run must report:
 
 Logs must be useful without exposing full sensitive payloads. Upload the sanitized run manifest and validation report as workflow artifacts.
 
-## 9. Validation strategy
+## 10. Validation strategy
 
 Testing is part of the production implementation, not a substitute for it.
 
@@ -340,7 +419,7 @@ Before opening a PR:
 - run the Docusaurus production build
 - scan generated files for secrets
 
-## 10. Delivery stages and acceptance criteria
+## 11. Delivery stages and acceptance criteria
 
 ### Stage 1: Runner foundation
 
@@ -384,7 +463,7 @@ Enable the daily workflow, dashboards/artifacts, failure reporting, cost limits 
 
 Accepted after consecutive scheduled runs demonstrate stable execution, correct no-story behavior, traceable sources and reviewable output without manual repair.
 
-## 11. Definition of done
+## 12. Definition of done
 
 The work is done only when:
 
@@ -399,8 +478,11 @@ The work is done only when:
 - logs, manifests and evidence allow every article claim to be traced
 - security scanning and operational documentation are in place
 - the owner can review, request revision, merge or reject without editing pipeline internals
+- every candidate is explicitly classified as full article, social brief, hold or reject
+- Docusaurus publication occurs only through human PR merge and the existing Azure Static Web Apps pipeline
+- social publishing remains manual unless a separately authorized protected publishing stage is implemented
 
-## 12. Reviewer conclusions
+## 13. Reviewer conclusions
 
 The existing fork is suitable as the skill and social research foundation, but it is not yet an executable production system. The implementation must not be described as complete after adding prompts, a sample workflow or a successful isolated API call.
 
