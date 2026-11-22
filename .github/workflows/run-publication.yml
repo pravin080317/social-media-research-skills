@@ -1,0 +1,46 @@
+name: Run publication pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      started_at:
+        description: Optional ISO-8601 run time used for a controlled rerun
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: praveen-tech-bytes-publication
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Execute controlled foundation run
+        env:
+          PUBLICATION_TRIGGER: manual
+          STARTED_AT: ${{ inputs.started_at }}
+        run: |
+          if [ -n "$STARTED_AT" ]; then
+            npm run run -- --started-at "$STARTED_AT"
+          else
+            npm run run
+          fi
+      - name: Upload sanitized run manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: publication-run-${{ github.run_id }}
+          path: artifacts/*.manifest.json
+          if-no-files-found: error
+          retention-days: 30
