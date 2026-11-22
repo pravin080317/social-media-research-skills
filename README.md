@@ -42,6 +42,23 @@ Get a key at [scrapecreators.com](https://scrapecreators.com).
 | [`content-repurposing`](skills/content-repurposing/) | Turn social videos, transcripts, and posts into reusable content assets | LinkedIn posts, X threads, scripts, newsletter/blog ideas |
 | [`scrapecreators-api`](skills/scrapecreators-api/) | Route a raw scraping/fetching request to the right ScrapeCreators endpoint | API calls, endpoint references, pagination guidance |
 
+## Praveen Tech Bytes Publication Agents
+
+This fork adds an editorial layer for producing review-ready technology content:
+
+| Agent | Coverage |
+|---|---|
+| [testing-content-agent](skills/testing-content-agent/) | Test tools, automation, performance, defensive pen testing, quality engineering, and agentic testing |
+| [ai-agentic-content-agent](skills/ai-agentic-content-agent/) | AI, generative AI, agent systems, RAG, evaluations, safety, and lessons from failures |
+| [cloud-content-agent](skills/cloud-content-agent/) | Cloud engineering, Kubernetes, platform engineering, SRE, observability, and FinOps |
+| [azure-content-agent](skills/azure-content-agent/) | Microsoft Azure, Azure AI Foundry, integration, data, identity, governance, and operations |
+| [security-delivery-content-agent](skills/security-delivery-content-agent/) | Security, DevSecOps, supply chain, CI/CD, deployment, and release engineering |
+| [tech-content-editor](skills/tech-content-editor/) | Routing, final editing, claim-level fact checking, format checks, and human approval gate |
+
+The publication contract is in [config/publication.example.yml](config/publication.example.yml). Outputs are Docusaurus article drafts plus LinkedIn and X drafts, source mappings, and an editorial decision. Nothing is published or merged automatically.
+
+The repository is currently the research and editorial skill layer. A scheduled runner and GitHub PR integration are the next implementation layer.
+
 ## Example Prompts
 
 ```text
