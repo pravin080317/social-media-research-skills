@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["publication", "topics", "editor", "runtime"],
+  "properties": {
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timezone", "lookback_hours", "max_candidates_per_topic", "max_articles_per_run", "output_mode", "auto_publish", "target", "social"],
+      "properties": {
+        "timezone": {"type": "string", "minLength": 1},
+        "lookback_hours": {"type": "integer", "minimum": 1, "maximum": 168},
+        "max_candidates_per_topic": {"type": "integer", "minimum": 1, "maximum": 100},
+        "max_articles_per_run": {"type": "integer", "minimum": 0, "maximum": 10},
+        "output_mode": {"const": "pull_request"},
+        "auto_publish": {"const": false},
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "base_branch", "article_root"],
+          "properties": {
+            "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+            "base_branch": {"type": "string", "minLength": 1},
+            "article_root": {"type": "string", "minLength": 1}
+          }
+        },
+        "social": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["linkedin", "x"],
+          "properties": {
+            "linkedin": {"const": "draft_only"},
+            "x": {"const": "draft_only"}
+          }
+        }
+      }
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "agent", "enabled"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "agent": {"type": "string", "minLength": 1},
+          "enabled": {"type": "boolean"}
+        }
+      }
+    },
+    "editor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent", "require_primary_source", "require_claim_source_map", "minimum_confidence", "human_approval_required"],
+      "properties": {
+        "agent": {"type": "string", "minLength": 1},
+        "require_primary_source": {"const": true},
+        "require_claim_source_map": {"const": true},
+        "minimum_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "human_approval_required": {"const": true}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifacts_directory", "state_directory", "request_timeout_ms", "max_retries"],
+      "properties": {
+        "artifacts_directory": {"type": "string", "minLength": 1},
+        "state_directory": {"type": "string", "minLength": 1},
+        "request_timeout_ms": {"type": "integer", "minimum": 1000, "maximum": 120000},
+        "max_retries": {"type": "integer", "minimum": 0, "maximum": 10}
+      }
+    }
+  }
+}
