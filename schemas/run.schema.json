@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "trigger", "started_at", "completed_at", "status", "configuration_digest", "stages", "counts", "outputs", "errors"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "pattern": "^[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}$"},
+    "trigger": {"enum": ["manual", "schedule", "test"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["succeeded", "failed", "no_content"]},
+    "configuration_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stages": {"type": "array", "items": {"type": "object"}},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collected", "duplicates", "selected", "drafted"],
+      "properties": {
+        "collected": {"type": "integer", "minimum": 0},
+        "duplicates": {"type": "integer", "minimum": 0},
+        "selected": {"type": "integer", "minimum": 0},
+        "drafted": {"type": "integer", "minimum": 0}
+      }
+    },
+    "outputs": {"type": "array", "items": {"type": "object"}},
+    "errors": {"type": "array", "items": {"type": "object"}}
+  }
+}
